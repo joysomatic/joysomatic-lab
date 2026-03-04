@@ -26,4 +26,4 @@ The **JoySomatic Lab** is where I "build in public." My goal is to create a **Po
 To bridge the gap between **System Logic** and **Somatic Feeling**. I believe that when we have the right tools to "decode" the noise around us, we can return to a state of clarity and Joy.
 
 ---
-*Follow my journey on [Instagram](https://instagram.com/inoarb) | Coaching at [JoySomatic.com](mailto:joysomatic@gmail.com)*
+*Follow my journey on [Instagram](https://instagram.com/joysomatic) | Coaching at [JoySomatic.com](mailto:joysomatic@gmail.com)*
