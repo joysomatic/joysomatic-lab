@@ -1,2 +1,7 @@
 *.m4a
 *.txt
+src/__pycache__/*
+library/*
+data/*
+*.pdf
+*.mp3
