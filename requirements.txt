@@ -1,0 +1,14 @@
+# --- Core AI (Local) ---
+openai-whisper      # Local audio-to-text transcription
+ollama              # Interface for your local Llama 3.2 model
+
+# --- Media & Processing ---
+yt-dlp              # Downloading audio from YouTube
+pydub               # Cutting and manipulating audio
+music-tag           # Adding metadata (ID3 tags) to audio files
+
+# --- Document Generation ---
+fpdf2               # Creating the printable Wisdom PDFs
+
+# --- Utilities ---
+python-dotenv       # Managing environment variables (just in case)

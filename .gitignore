@@ -1,7 +1,8 @@
 *.m4a
-*.txt
-src/__pycache__/*
-library/*
-data/*
-*.pdf
 *.mp3
+*.pdf
+
+# Ignore the entire folders (much cleaner)
+__pycache__/
+library/
+data/
