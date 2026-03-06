@@ -1,19 +1,36 @@
 import whisper
-import ollama
 import json
 import re
+import os
 
-def transcribe_and_map(audio_path):
-    # 1. Local transcription (Whisper — runs entirely on your machine)
-    print("   Transcribing with local Whisper...")
-    model = whisper.load_model("base")
-    result = model.transcribe(audio_path)
-    full_text = result["text"]
-    segments = result.get("segments", [])
+from llama_cpp import Llama
 
-    # 2. Local wisdom extraction (Ollama Llama 3.2 — no API keys)
-    print("   Extracting High-Signal Insights & Actionable Somatic Wisdom (Ollama)...")
-    prompt = f"""Return ONLY a raw JSON object. No markdown, no explanation.
+
+DEFAULT_GGUF_MODEL_PATH = "./models/llama-3.2-1b.gguf"
+
+
+class WisdomProcessor:
+    def __init__(
+        self,
+        model_path: str = DEFAULT_GGUF_MODEL_PATH,
+        n_ctx: int = 2048,
+        n_gpu_layers: int = -1,
+        verbose: bool = False,
+    ):
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(
+                f"Missing local model file at '{model_path}'. "
+                "Place your .gguf model under ./models/ (see README)."
+            )
+        self.llm = Llama(
+            model_path=model_path,
+            n_ctx=n_ctx,
+            n_gpu_layers=n_gpu_layers,
+            verbose=verbose,
+        )
+
+    def generate_wisdom(self, transcript_text: str) -> dict:
+        prompt = f"""Return ONLY a raw JSON object. No markdown, no explanation.
 
 Keys (use these exactly):
 - "Summary": one short paragraph summarizing the main message.
@@ -25,28 +42,55 @@ Rules:
 - No conversational filler. Output only the JSON object.
 
 Transcript (excerpt):
-{full_text[:5000]}
+{transcript_text[:5000]}
 """
 
-    response = ollama.chat(model="llama3.2", messages=[{"role": "user", "content": prompt}])
-    raw_content = response["message"]["content"].strip()
+        # llama.cpp local inference (no server, no API keys)
+        result = self.llm.create_chat_completion(
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2,
+        )
+        raw_content = (
+            (result.get("choices", [{}])[0].get("message", {}) or {}).get("content", "") or ""
+        ).strip()
 
-    try:
-        json_match = re.search(r"(\{.*\})", raw_content, re.DOTALL)
-        data = json.loads(json_match.group(1)) if json_match else json.loads(raw_content)
-    except Exception as e:
-        print(f"   ⚠️ Parse fallback: {e}")
-        data = {
-            "Summary": "Extraction incomplete.",
-            "High_Signal_Insights": [],
-            "Actionable_Somatic_Wisdom": ["Pause and re-read the transcript with curiosity."],
-        }
+        try:
+            json_match = re.search(r"(\{.*\})", raw_content, re.DOTALL)
+            data = json.loads(json_match.group(1)) if json_match else json.loads(raw_content)
+        except Exception as e:
+            print(f"   ⚠️ Parse fallback: {e}")
+            data = {
+                "Summary": "Extraction incomplete.",
+                "High_Signal_Insights": [],
+                "Actionable_Somatic_Wisdom": ["Pause and re-read the transcript with curiosity."],
+            }
 
-    # Normalize keys for PDF (allow legacy or alternate names from model)
-    if "Core_Insights" in data and "High_Signal_Insights" not in data:
-        data["High_Signal_Insights"] = data.pop("Core_Insights", [])
-    if "Exercises" in data and "Actionable_Somatic_Wisdom" not in data:
-        data["Actionable_Somatic_Wisdom"] = data.pop("Exercises", [])
+        # Normalize keys (tolerate model drift)
+        if "Core_Insights" in data and "High_Signal_Insights" not in data:
+            data["High_Signal_Insights"] = data.pop("Core_Insights", [])
+        if "Exercises" in data and "Actionable_Somatic_Wisdom" not in data:
+            data["Actionable_Somatic_Wisdom"] = data.pop("Exercises", [])
+
+        # Ensure required keys exist
+        data.setdefault("Summary", "")
+        data.setdefault("High_Signal_Insights", [])
+        data.setdefault("Actionable_Somatic_Wisdom", [])
+
+        return data
+
+
+def transcribe_and_map(audio_path):
+    # 1. Local transcription (Whisper — runs entirely on your machine)
+    print("   Transcribing with local Whisper...")
+    model = whisper.load_model("base")
+    result = model.transcribe(audio_path)
+    full_text = result["text"]
+    segments = result.get("segments", [])
+
+    # 2. Local wisdom extraction (llama-cpp-python, .gguf in ./models/)
+    print("   Extracting High-Signal Insights & Actionable Somatic Wisdom (llama.cpp)...")
+    processor = WisdomProcessor()
+    data = processor.generate_wisdom(full_text)
 
     # Build clips for the slicer from Whisper segments (timestamped)
     clips = []

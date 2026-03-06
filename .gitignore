@@ -3,6 +3,9 @@
 *.pdf
 
 # Ignore the entire folders (much cleaner)
+models/
 __pycache__/
 library/
 data/
+venv/
+.DS_Store

@@ -10,7 +10,7 @@ Your audio and transcripts **never leave your machine**. The Wisdom Synthesis En
 
 - **No API keys** — no OpenAI, no cloud transcription, no external LLM calls.
 - **Local transcription** — [Whisper](https://github.com/openai/whisper) runs on your CPU/GPU.
-- **Local summarization** — [Ollama](https://ollama.ai) runs [Llama 3.2](https://ollama.com/library/llama3.2) on your machine.
+- **Local summarization** — `llama-cpp-python` runs a local `.gguf` model (llama.cpp) on your machine.
 - **Local outputs** — PDFs and audio snippets are written to `library/` on disk.
 
 Everything runs in your environment. You own the pipeline and the data.
@@ -23,7 +23,7 @@ When you run the engine, it executes the full **Signal over Noise** workflow:
 
 1. **Download** — Fetch audio from a YouTube URL (via `yt-dlp`).
 2. **Transcribe** — Convert speech to text with local Whisper.
-3. **Summarize** — Extract **High-Signal Insights** and **Actionable Somatic Wisdom** with local Ollama (Llama 3.2).
+3. **Summarize** — Extract **High-Signal Insights** and **Actionable Somatic Wisdom** with local llama.cpp (`llama-cpp-python`) using a `.gguf` model in `models/`.
 4. **PDF** — Generate a structured Wisdom Synthesis Engine report in `library/wisdom_pdfs/`.
 5. **Snippets** — Slice the original audio into high-fidelity clips by segment and save them under `library/`.
 6. **Cleanup** — Remove the temporary full-length audio file.
@@ -34,7 +34,7 @@ When you run the engine, it executes the full **Signal over Noise** workflow:
 
 - **Python 3.x**
 - **FFmpeg** (for audio conversion and slicing)
-- **Ollama** with **Llama 3.2** pulled (`ollama pull llama3.2`)
+- A local **`.gguf` model** placed at `models/llama-3.2-1b.gguf` (or update the path in `src/processor.py`)
 
 Install Python dependencies:
 
@@ -63,9 +63,31 @@ Enter a YouTube URL when prompted. Outputs appear in:
 
 - `main.py` — Entry point; runs the full Signal over Noise pipeline.
 - `src/downloader.py` — Downloads audio from URLs.
-- `src/processor.py` — Whisper transcription + Ollama extraction (High-Signal Insights, Actionable Somatic Wisdom) + clip list.
+- `src/processor.py` — Whisper transcription + local GGUF inference via `llama-cpp-python` + clip list.
 - `src/writer.py` — Builds the Wisdom Synthesis Engine PDF.
 - `src/slicer.py` — Cuts audio into snippets from the segment map.
+
+---
+
+## Setup (Local `.gguf` Model)
+
+1. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+2. Download or copy a compatible `.gguf` model and place it here:
+
+- `models/llama-3.2-1b.gguf`
+
+3. macOS GPU acceleration (Metal):
+
+```bash
+CMAKE_ARGS="-DGGML_METAL=on" pip install llama-cpp-python
+```
+
+If you already installed `llama-cpp-python`, reinstall it with the command above to enable Metal acceleration.
 
 ---
 

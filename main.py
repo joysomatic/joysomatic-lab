@@ -6,13 +6,13 @@ import os
 
 def run_pipeline(youtube_url):
     print("🚀 Wisdom Synthesis Engine — Signal over Noise pipeline")
-    print("   (100% local: Whisper → Ollama Llama 3.2 → PDF + audio snippets)\n")
+    print("   (100% local: Whisper → llama.cpp (.gguf) → PDF + audio snippets)\n")
 
     # 1. Download audio
     print("--- 1. Downloading audio ---")
     audio_file = download_audio(youtube_url)
 
-    # 2. Transcribe (local Whisper) + extract wisdom (local Ollama) + build clips
+    # 2. Transcribe (local Whisper) + extract wisdom (local llama.cpp) + build clips
     print("\n--- 2. Transcribing & extracting wisdom (local) ---")
     wisdom_data = transcribe_and_map(audio_file)
 
