@@ -1,3 +1,10 @@
+import sys
+try:
+    import audioop
+except ImportError:
+    import audioop_lts as audioop
+    sys.modules["audioop"] = audioop
+
 import os
 from pydub import AudioSegment
 

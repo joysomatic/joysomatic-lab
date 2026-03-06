@@ -33,8 +33,29 @@ When you run the engine, it executes the full **Signal over Noise** workflow:
 ## Requirements
 
 - **Python 3.x**
-- **FFmpeg** (for audio conversion and slicing)
 - A local **`.gguf` model** placed at `models/llama-3.2-1b.gguf` (or update the path in `src/processor.py`)
+
+---
+
+## System Requirements
+
+### FFmpeg (required)
+
+FFmpeg is required for audio conversion and slicing (used by `yt-dlp` postprocessing and `pydub`).
+
+- **macOS (Homebrew)**:
+
+```bash
+brew install ffmpeg
+```
+
+- **Windows (Chocolatey)**:
+
+```bash
+choco install ffmpeg
+```
+
+- **Windows (manual download)**: get builds from [FFmpeg Downloads](https://ffmpeg.org/download.html) and ensure `ffmpeg` is on your `PATH`.
 
 Install Python dependencies:
 
@@ -90,6 +111,15 @@ CMAKE_ARGS="-DGGML_METAL=on" pip install llama-cpp-python
 If you already installed `llama-cpp-python`, reinstall it with the command above to enable Metal acceleration.
 
 ---
+
+## Troubleshooting
+
+- **Python 3.13+ / 3.14: `ModuleNotFoundError: No module named 'audioop'`**
+  - Install `audioop-lts` (included in `requirements.txt`).
+  - This project also applies a small compatibility monkey-patch in `src/slicer.py` so `pydub` can import `audioop` on Python 3.13+.
+
+- **Windows: building `llama-cpp-python` fails**
+  - You may need **Visual Studio Build Tools** (C++ build tools) installed so pip can compile the native extension.
 
 ## Why Local-First?
 

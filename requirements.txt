@@ -1,6 +1,7 @@
 # --- Core AI (100% local; no API keys) ---
 openai-whisper      # Local Whisper model (runs on your machine, no OpenAI API)
 llama-cpp-python    # Local GGUF inference via llama.cpp (no server)
+audioop-lts         # Python 3.13+ compatibility (pydub/audio stack expects audioop)
 
 # --- Media & Processing ---
 yt-dlp              # Downloading audio from YouTube
