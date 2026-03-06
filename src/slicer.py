@@ -7,7 +7,7 @@ def create_somatic_clips(audio_path, topic_map):
     topic_map: The JSON list from processor.py (e.g., [{'title': '...', 'start': 0, 'end': 60, 'category': '...'}])
     """
     # Load the heavy audio file once into memory
-    print(f"✂️ Loading audio for slicing: {audio_path}")
+    print(f"   Loading audio for slicing: {audio_path}")
     full_audio = AudioSegment.from_file(audio_path)
     
     for clip in topic_map['clips']:
@@ -16,7 +16,7 @@ def create_somatic_clips(audio_path, topic_map):
         end_ms = clip['end'] * 1000
         
         # Extract the segment
-        print(f"  → Cutting: {clip['title']} ({clip['category']})")
+        print(f"   → Cutting: {clip['title']} ({clip['category']})")
         segment = full_audio[start_ms:end_ms]
         
         # Create the category folder if it doesn't exist
@@ -27,4 +27,4 @@ def create_somatic_clips(audio_path, topic_map):
         filename = f"{folder_path}/{clip['title'].replace(' ', '_')}.mp3"
         segment.export(filename, format="mp3")
         
-    print("✅ Library update complete!")
+    print("   Audio snippets saved to library/.")

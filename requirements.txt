@@ -1,6 +1,6 @@
-# --- Core AI (Local) ---
-openai-whisper      # Local audio-to-text transcription
-ollama              # Interface for your local Llama 3.2 model
+# --- Core AI (100% local; no API keys) ---
+openai-whisper      # Local Whisper model (runs on your machine, no OpenAI API)
+ollama              # Interface for local Llama 3.2 via Ollama
 
 # --- Media & Processing ---
 yt-dlp              # Downloading audio from YouTube
@@ -10,5 +10,5 @@ music-tag           # Adding metadata (ID3 tags) to audio files
 # --- Document Generation ---
 fpdf2               # Creating the printable Wisdom PDFs
 
-# --- Utilities ---
-python-dotenv       # Managing environment variables (just in case)
+# --- Utilities (optional) ---
+# python-dotenv     # Uncomment if you add optional env-based config
