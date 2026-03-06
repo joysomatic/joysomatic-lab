@@ -1,8 +1,14 @@
+import os
+import certifi
+
+# Ensure HTTPS model downloads (e.g., Whisper) use a valid CA bundle cross-platform.
+os.environ["SSL_CERT_FILE"] = certifi.where()
+os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
+
 from src.downloader import download_audio
 from src.processor import transcribe_and_map
 from src.writer import create_wisdom_pdf
 from src.slicer import create_somatic_clips
-import os
 
 def run_pipeline(youtube_url):
     print("🚀 Wisdom Synthesis Engine — Signal over Noise pipeline")
