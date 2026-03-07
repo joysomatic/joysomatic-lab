@@ -17,12 +17,24 @@ def create_somatic_clips(audio_path, topic_map):
     print(f"   Loading audio for slicing: {audio_path}")
     full_audio = AudioSegment.from_file(audio_path)
     total_duration_ms = len(full_audio)
-    padding_ms = 1000  # 1 second on each side so clips don't sound chopped
+    start_padding_ms = 1500  # 1.5 seconds so we never miss the first word
+    end_padding_ms = 1500
+    min_duration_ms = 3000   # segments < 3 sec get expanded to capture full sentence
 
     for clip in topic_map['clips']:
-        # Pydub uses milliseconds; pad start/end, ensure start never below 0
-        start_ms = max(0, clip['start'] * 1000 - padding_ms)
-        end_ms = min(total_duration_ms, clip['end'] * 1000 + padding_ms)
+        start_ms = clip['start'] * 1000
+        end_ms = clip['end'] * 1000
+        duration_ms = end_ms - start_ms
+
+        # If segment < 3 sec, expand to capture the full sentence
+        if duration_ms < min_duration_ms:
+            expand = (min_duration_ms - duration_ms) / 2
+            start_ms = max(0, start_ms - expand)
+            end_ms = min(total_duration_ms, end_ms + expand)
+
+        # Aggressive padding: 1.5s on start, ensure start never below 0
+        start_ms = max(0, start_ms - start_padding_ms)
+        end_ms = min(total_duration_ms, end_ms + end_padding_ms)
 
         # Extract the segment
         print(f"   → Cutting: {clip['title']} ({clip['category']})")

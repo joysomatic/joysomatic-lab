@@ -26,6 +26,10 @@ def clean_text(text):
     for src, dst in replacements.items():
         text = text.replace(src, dst)
 
+    # Strip stray JSON structural characters that may leak from AI output
+    for char in ("{", "}", "[", "]"):
+        text = text.replace(char, "")
+
     # Last-resort safety: strip remaining non-ASCII chars.
     return text.encode("ascii", "ignore").decode("ascii")
 

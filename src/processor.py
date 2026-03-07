@@ -48,7 +48,11 @@ class WisdomProcessor:
         return rescued[:50]  # cap for safety
 
     def generate_wisdom(self, transcript_text: str) -> dict:
-        prompt = f"""Output ONLY a raw JSON object with two keys: "insights" and "somatic_wisdom", both containing lists of strings. Do not include any introductory text, markdown formatting, or explanations.
+        prompt = f"""You are a somatic research assistant. Your goal is to summarize transcripts into full, meaningful sentences.
+
+DO NOT list single keywords. Only extract full sentences or complete thoughts that last at least 5-10 seconds of speech. Combine related points into a single, cohesive insight.
+
+Output ONLY valid JSON. Use exactly two keys: "insights" and "somatic_wisdom", both containing lists of strings. Each string must be a full sentence or short paragraph—not a single keyword. Do not include introductory text, markdown, or explanations outside the JSON.
 
 Transcript (excerpt):
 {transcript_text[:5000]}
@@ -57,7 +61,7 @@ Transcript (excerpt):
         # llama.cpp local inference (no server, no API keys)
         result = self.llm.create_chat_completion(
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.2,
+            temperature=0.75,
             max_tokens=2048,
         )
         raw_content = (
