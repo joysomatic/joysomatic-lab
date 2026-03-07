@@ -53,11 +53,12 @@ def create_wisdom_pdf(title, summary_data, filename):
 
         if isinstance(content, list):
             if not content:
-                content = ["Reflect on the themes above."]
+                content = ["No items extracted for this section."]
             formatted_text = "\n".join([f"- {clean_text(item)}" for item in content])
         else:
             formatted_text = clean_text(content)
 
+        # Long lists wrap and flow to new pages via multi_cell + set_auto_page_break
         pdf.multi_cell(0, 8, clean_text(formatted_text))
         pdf.ln(5)
 

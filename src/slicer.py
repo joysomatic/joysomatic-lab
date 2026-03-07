@@ -17,10 +17,10 @@ def create_somatic_clips(audio_path, topic_map):
     print(f"   Loading audio for slicing: {audio_path}")
     full_audio = AudioSegment.from_file(audio_path)
     total_duration_ms = len(full_audio)
-    padding_ms = 500  # half-second padding so clips don't sound chopped
+    padding_ms = 1000  # 1 second on each side so clips don't sound chopped
 
     for clip in topic_map['clips']:
-        # Pydub uses milliseconds; pad start/end but clamp to file duration
+        # Pydub uses milliseconds; pad start/end, ensure start never below 0
         start_ms = max(0, clip['start'] * 1000 - padding_ms)
         end_ms = min(total_duration_ms, clip['end'] * 1000 + padding_ms)
 

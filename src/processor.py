@@ -29,17 +29,26 @@ class WisdomProcessor:
             verbose=verbose,
         )
 
+    def _rescue_bullets(self, raw_content: str) -> list:
+        """When JSON fails, extract bullet-like lines from model output."""
+        rescued = []
+        bullet_start = re.compile(r"^(\s*[-*•]\s*|\s*\d+\.\s*)\s*")
+        for line in raw_content.splitlines():
+            line = line.strip()
+            if not line or len(line) < 3:
+                continue
+            line = bullet_start.sub("", line).strip()
+            if not line:
+                continue
+            # Remove markdown code fences or leading/trailing junk
+            line = re.sub(r"^```\w*\s*", "", line).strip()
+            line = re.sub(r"\s*```\s*$", "", line).strip()
+            if line and line not in ("{", "}", "json"):
+                rescued.append(line)
+        return rescued[:50]  # cap for safety
+
     def generate_wisdom(self, transcript_text: str) -> dict:
-        prompt = f"""Return ONLY a raw JSON object. No markdown, no explanation.
-
-Keys (use these exactly):
-- "Summary": one short paragraph summarizing the main message.
-- "High_Signal_Insights": a list of strings — the most important ideas, principles, or realizations from the transcript. Focus on clarity and signal over noise.
-- "Actionable_Somatic_Wisdom": a list of strings — concrete practices, prompts, or body-based actions a listener can do (breath, movement, reflection prompts). If the transcript has few, suggest 2–3 that fit the themes.
-
-Rules:
-- All three keys must be present. "High_Signal_Insights" and "Actionable_Somatic_Wisdom" must be arrays of strings.
-- No conversational filler. Output only the JSON object.
+        prompt = f"""Output ONLY a raw JSON object with two keys: "insights" and "somatic_wisdom", both containing lists of strings. Do not include any introductory text, markdown formatting, or explanations.
 
 Transcript (excerpt):
 {transcript_text[:5000]}
@@ -55,27 +64,36 @@ Transcript (excerpt):
             (result.get("choices", [{}])[0].get("message", {}) or {}).get("content", "") or ""
         ).strip()
 
+        data = None
         try:
             json_match = re.search(r"(\{.*\})", raw_content, re.DOTALL)
-            data = json.loads(json_match.group(1)) if json_match else json.loads(raw_content)
+            blob = json_match.group(1) if json_match else raw_content
+            data = json.loads(blob)
         except Exception as e:
-            print(f"   ⚠️ Parse fallback: {e}")
+            print(f"   ⚠️ JSON parse failed ({e}); rescuing bullet points from model output.")
+            rescued = self._rescue_bullets(raw_content)
             data = {
-                "Summary": "Extraction incomplete.",
-                "High_Signal_Insights": [],
-                "Actionable_Somatic_Wisdom": ["Pause and re-read the transcript with curiosity."],
+                "Summary": "",
+                "High_Signal_Insights": rescued if rescued else [],
+                "Actionable_Somatic_Wisdom": [],
             }
 
-        # Normalize keys (tolerate model drift)
-        if "Core_Insights" in data and "High_Signal_Insights" not in data:
-            data["High_Signal_Insights"] = data.pop("Core_Insights", [])
-        if "Exercises" in data and "Actionable_Somatic_Wisdom" not in data:
-            data["Actionable_Somatic_Wisdom"] = data.pop("Exercises", [])
-
-        # Ensure required keys exist
-        data.setdefault("Summary", "")
-        data.setdefault("High_Signal_Insights", [])
-        data.setdefault("Actionable_Somatic_Wisdom", [])
+        # Map strict keys to pipeline keys (insights -> High_Signal_Insights, somatic_wisdom -> Actionable_Somatic_Wisdom)
+        if data is not None and isinstance(data, dict):
+            if "insights" in data and isinstance(data["insights"], list):
+                data["High_Signal_Insights"] = data.pop("insights", [])
+            if "somatic_wisdom" in data and isinstance(data["somatic_wisdom"], list):
+                data["Actionable_Somatic_Wisdom"] = data.pop("somatic_wisdom", [])
+            # Tolerate legacy/alternate keys
+            if "Core_Insights" in data and "High_Signal_Insights" not in data:
+                data["High_Signal_Insights"] = data.pop("Core_Insights", [])
+            if "Exercises" in data and "Actionable_Somatic_Wisdom" not in data:
+                data["Actionable_Somatic_Wisdom"] = data.pop("Exercises", [])
+            data.setdefault("Summary", data.get("Summary", ""))
+            data.setdefault("High_Signal_Insights", [])
+            data.setdefault("Actionable_Somatic_Wisdom", [])
+        else:
+            data = {"Summary": "", "High_Signal_Insights": [], "Actionable_Somatic_Wisdom": []}
 
         return data
 
