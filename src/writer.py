@@ -31,6 +31,7 @@ def clean_text(text):
 
 def create_wisdom_pdf(title, summary_data, filename):
     pdf = FPDF()
+    pdf.set_auto_page_break(True, margin=20)  # flow long content onto new pages
     pdf.add_page()
 
     # Header

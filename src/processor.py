@@ -13,7 +13,7 @@ class WisdomProcessor:
     def __init__(
         self,
         model_path: str = DEFAULT_GGUF_MODEL_PATH,
-        n_ctx: int = 2048,
+        n_ctx: int = 4096,
         n_gpu_layers: int = -1,
         verbose: bool = False,
     ):
@@ -49,6 +49,7 @@ Transcript (excerpt):
         result = self.llm.create_chat_completion(
             messages=[{"role": "user", "content": prompt}],
             temperature=0.2,
+            max_tokens=2048,
         )
         raw_content = (
             (result.get("choices", [{}])[0].get("message", {}) or {}).get("content", "") or ""
